@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>PUB DARTS NIGHT</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -20%,#355844,#10251b 65%);color:#fff;font-family:Georgia,serif}
+.app{max-width:950px;margin:auto;padding:10px}
+h1{text-align:center;margin:2px 0;font-size:32px;letter-spacing:2px;text-shadow:2px 2px #444}
+.sub{text-align:center;color:#e3c985;letter-spacing:2px;margin-bottom:8px}
+.controls{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+input,button{font:inherit;padding:10px 12px;border-radius:6px;border:2px solid #ddd}
+input{color:#111;min-width:155px}
+button{background:#294b3b;color:#fff;font-weight:bold}
+#start{background:#9b7538;border-color:#f2d98b}
+.scoreboard{margin:9px 0;padding:8px;background:#0e2119;border:4px solid #9b7538;border-radius:6px;box-shadow:inset 0 0 18px #000}
+.players{display:flex;gap:7px;flex-wrap:wrap}
+.player{flex:1 1 180px;position:relative;padding:7px;background:#193126;border:2px solid #777;border-radius:5px}
+.player.active{border:3px solid #f0d98b;background:#2d4d3d}
+.name{font-size:19px;font-weight:bold}.score{font-size:50px;line-height:1;font-weight:bold;text-shadow:2px 2px #666}
+.remove{position:absolute;right:5px;top:5px;padding:2px 7px;background:#542525}
+#boardWrap{text-align:center;margin-top:4px}
+svg{width:min(96vw,560px);height:auto;touch-action:none;user-select:none;-webkit-user-select:none;filter:drop-shadow(0 5px 7px #000)}
+.status{text-align:center;font-size:21px;font-weight:bold;margin:5px}
+.checkout{text-align:center;font-size:20px;padding:8px;border-top:2px dashed #9b7538}
+.history{text-align:center;font-size:17px;margin-top:5px}
+.note{text-align:center;color:#d9c58f;font-size:13px;margin-top:4px}
+.legPicker{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}.legBtn{padding:9px 10px;background:#233c31;border:2px solid #777}.legBtn.active{background:#9b7538;border-color:#f2d98b}.legBtn:disabled{opacity:.55}
+.matchBar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0;padding:9px 12px;border:1px solid #6f5a2d;background:linear-gradient(90deg,#102219,#1c382a,#102219);border-radius:8px;font-weight:bold}.matchBar span{color:#e7cc82}.player.active:before{content:"THROWING";position:absolute;right:8px;bottom:7px;font-size:10px;letter-spacing:1px;color:#f0d98b}.legFlash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.78);z-index:999;opacity:0;pointer-events:none;transition:opacity .18s}.legFlash.show{opacity:1}.legCard{text-align:center;padding:28px 34px;border:3px solid #e0bd63;background:#13291f;border-radius:12px;box-shadow:0 0 40px #000}.legCard .small{font-size:18px;letter-spacing:4px;color:#d9c58f}.legCard .winner{font-size:42px;font-weight:900;margin-top:7px}.legCard .won{font-size:22px;color:#f0d98b;margin-top:5px}@media(max-width:600px){h1{font-size:25px}.score{font-size:44px}.legCard .winner{font-size:34px}}
+
+.profilePanel{margin-top:12px;background:#102219;border:2px solid #8b6b2e;border-radius:10px;padding:10px}.profileHead{display:flex;justify-content:space-between;align-items:center;gap:8px}.profileGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:7px;margin-top:8px}.profileCard{background:#193126;border:1px solid #53675b;border-radius:8px;padding:9px}.profileCard b{font-size:17px}.career{font-size:12px;line-height:1.55;color:#e9e2cf;margin-top:4px}.loadProfile{width:100%;margin-top:7px;padding:7px}.savedTag{font-size:11px;color:#f0d98b;letter-spacing:1px}.emptyProfiles{color:#d9c58f;font-size:13px}
+
+.maxFlash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,rgba(120,0,0,.94),rgba(0,0,0,.94));z-index:1001;opacity:0;pointer-events:none;transition:opacity .15s}.maxFlash.show{opacity:1}.maxCard{text-align:center;font-weight:900;text-shadow:0 4px 12px #000;animation:maxPop .55s ease-out}.max180{font-size:min(26vw,150px);line-height:.85;color:#f0d98b}.maxWho{font-size:26px;letter-spacing:3px;margin-top:14px}.maxSub{font-size:18px;margin-top:8px;color:#fff}@keyframes maxPop{0%{transform:scale(.45) rotate(-4deg)}65%{transform:scale(1.08) rotate(2deg)}100%{transform:scale(1)}}
+.matchReport{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1002;display:none;align-items:center;justify-content:center;padding:14px}.matchReport.show{display:flex}.reportCard{width:min(94vw,720px);max-height:90vh;overflow:auto;background:#13291f;border:3px solid #e0bd63;border-radius:14px;padding:18px;box-shadow:0 0 45px #000}.reportTitle{text-align:center;font-size:28px;font-weight:900;color:#f0d98b}.reportWinner{text-align:center;font-size:22px;margin:5px 0 14px}.reportGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}.reportPlayer{background:#193126;border:1px solid #617267;border-radius:8px;padding:10px}.reportPlayer b{font-size:19px}.reportClose{width:100%;margin-top:14px;background:#9b7538;border-color:#f2d98b}.achievements{margin-top:12px;background:#102219;border:2px solid #8b6b2e;border-radius:10px;padding:10px}.badgeRow{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.badge{background:#263d31;border:1px solid #9b7538;border-radius:999px;padding:6px 9px;font-size:12px;color:#f3e4b1}
+
+.tournamentPanel{margin-top:12px;background:#102219;border:2px solid #8b6b2e;border-radius:10px;padding:12px}.tournamentTop{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tournamentTop select,.tournamentTop input{background:#0b1812;color:#fff;border:1px solid #6f5a2d;border-radius:6px;padding:9px}.bracket{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:10px;overflow-x:auto;margin-top:10px}.round{min-width:180px}.round h3{color:#f0d98b;text-align:center;margin:5px}.tie{background:#193126;border:1px solid #617267;border-radius:7px;padding:8px;margin:8px 0}.tie .winner{color:#f0d98b;font-weight:900}.tourStatus{margin-top:8px;color:#d9c58f}.tourBtn{background:#6f4d18;border-color:#d5ad50}.tourBtn.active{background:#9b7538}
+@media(max-width:700px){.bracket{grid-template-columns:repeat(3,220px)}}
+
+.homeScreen{position:fixed;inset:0;z-index:3000;background:radial-gradient(circle at 50% 0,#315a43,#08130e 72%);display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}.homeScreen.hidden{display:none}.homeCard{width:min(680px,100%);text-align:center}.homeLogo{font-size:44px;font-weight:900;letter-spacing:2px;text-shadow:0 4px 14px #000}.homeTag{color:#e5ca7d;letter-spacing:3px;margin:6px 0 24px}.homeMenu{display:grid;grid-template-columns:1fr 1fr;gap:12px}.homeBtn{min-height:92px;font-size:20px;background:linear-gradient(180deg,#315742,#173225);border:2px solid #8f7840;box-shadow:0 5px 18px #0006}.homeBtn strong{display:block;font-size:25px}.homeBtn.primary{background:linear-gradient(180deg,#a47a31,#6e4b15);border-color:#f0d98b}.homeFoot{margin-top:20px;color:#aebcaf;font-size:12px}.homeReturn{position:fixed;right:12px;top:10px;z-index:2000;padding:7px 10px;font-size:12px;background:#1d392b;border-color:#8f7840}.walkOn{position:fixed;inset:0;z-index:2500;background:radial-gradient(circle,#254c38,#050907 75%);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}.walkOn.show{opacity:1}.walkCard{text-align:center;padding:30px}.walkRound{color:#e8c968;letter-spacing:5px;font-size:20px}.walkNames{font-size:clamp(32px,8vw,64px);font-weight:900;margin:16px 0}.walkVs{color:#d5b45c;font-size:20px}.settingsBox{display:none;margin-top:12px;padding:12px;border:1px solid #8f7840;border-radius:9px;background:#102219}.settingsBox.show{display:block}.settingsBox button{margin:4px}@media(max-width:520px){.homeMenu{grid-template-columns:1fr}.homeLogo{font-size:34px}.homeBtn{min-height:76px}}
+</style>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#102219"><meta name="apple-mobile-web-app-capable" content="yes"><link rel="apple-touch-icon" href="icons/icon-192.svg"></head>
+<body>
+<div id="homeScreen" class="homeScreen"><div class="homeCard"><div class="homeLogo">🍺 PUB DARTS NIGHT 🎯</div><div class="homeTag">YOUR OCHÉ. YOUR NIGHT.</div><div class="homeMenu"><button id="homeQuick" class="homeBtn primary"><strong>🎯 QUICK MATCH</strong>Set up a 501 match</button><button id="homeTournament" class="homeBtn"><strong>🏆 TOURNAMENT NIGHT</strong>4 or 8 player knockout</button><button id="homePlayers" class="homeBtn"><strong>📊 PLAYERS & STATS</strong>Career records & achievements</button><button id="homeSettings" class="homeBtn"><strong>⚙️ SETTINGS</strong>Caller & app options</button></div><div id="settingsBox" class="settingsBox"><b>APP SETTINGS</b><br><button id="settingsCaller">🎙 Enable caller</button><button id="settingsClose">Close settings</button><div style="font-size:12px;color:#d9c58f;margin-top:7px">Stats and tournaments are saved on this device.</div></div><div class="homeFoot">PUB DARTS NIGHT • v34</div></div></div>
+<button id="homeReturn" class="homeReturn">⌂ HOME</button>
+<div id="walkOn" class="walkOn"><div class="walkCard"><div id="walkRound" class="walkRound"></div><div id="walkNames" class="walkNames"></div><div class="walkVs">MATCH NIGHT</div></div></div>
+
+<div class="app">
+<h1>🍺 PUB DARTS NIGHT 🎯</h1>
+<div class="sub">501 • TOURNAMENT NIGHT • PLAYER PROFILES • v34</div>
+<div class="controls">
+<input id="playerName" placeholder="Enter player name">
+<button id="addBtn">+ Add Player</button>
+<div id="matchLength" class="legPicker" aria-label="Match length">
+<button type="button" class="legBtn" data-legs="1">1 Leg</button>
+<button type="button" class="legBtn active" data-legs="3">Best of 3</button>
+<button type="button" class="legBtn" data-legs="5">Best of 5</button>
+<button type="button" class="legBtn" data-legs="7">Best of 7</button>
+</div>
+<button id="start">🎯 START MATCH</button>
+<button id="undo">↶ Undo Dart</button>
+<button id="end">End Turn</button>
+<button id="callerMode" type="button">🎙 Enable Fast Caller</button>
+      <button id="new">New Game</button>
+</div>
+<div class="matchBar"><div>🎯 <span id="matchInfo">BEST OF 3</span></div><div id="legInfo">LEG 1</div></div>
+<div class="scoreboard"><div id="players" class="players"></div></div>
+<div id="boardWrap" style="display:none"><svg id="board" viewBox="0 0 500 500"></svg></div>
+<div id="scoreEntry" class="scoreEntry">
+  <div class="entryTitle">FAST DART ENTRY</div>
+  <div id="entryDisplay" class="entryDisplay">S — choose a number</div>
+  <div class="multRow"><button class="mult active" data-type="S">S<br><small>Single</small></button><button class="mult" data-type="D">D<br><small>Double</small></button><button class="mult" data-type="T">T<br><small>Treble</small></button></div>
+  <div id="numberPad" class="numberPad"></div>
+  <div class="specialRow"><button id="missBtn">MISS</button><button id="bullBtn">25 BULL</button><button id="bullseyeBtn">50 BULLSEYE</button></div>
+  <div class="note">Tap S, D or T then the number — e.g. T → 20. Keyboard also works: T20, D16, S5 then Enter.</div>
+</div>
+<div id="status" class="status">Add a player, then press START GAME</div>
+<div id="callerStatus" class="note">Caller audio: George • v18 • FAST CALLER • instant scoring</div>
+<div id="checkout" class="checkout"></div>
+<div id="history" class="history"></div>
+<div id="tournamentPanel" class="tournamentPanel"><div class="tournamentTop"><div style="font-weight:900;font-size:18px">🏆 TOURNAMENT NIGHT</div><select id="tourSize"><option value="4">4 players</option><option value="8">8 players</option></select><button id="tourCreate" class="tourBtn">Create knockout</button><button id="tourReset">Reset tournament</button></div><div id="tourStatus" class="tourStatus">Add 4 or 8 players above, then create a knockout tournament.</div><div id="bracket" class="bracket"></div></div>
+<div id="profilePanel" class="profilePanel"><div class="profileHead"><div style="font-weight:900;font-size:18px">🏆 PLAYER PROFILES</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end"><div class="savedTag">SAVED ON THIS DEVICE</div><button id="resetStats" style="padding:7px 10px;background:#6b2b2b;border-color:#b66">Reset stats</button></div></div><div id="profiles" class="profileGrid"></div></div>
+<div class="achievements"><div style="font-weight:900;font-size:18px">🏅 ACHIEVEMENTS</div><div id="achievementBadges" class="badgeRow"><span class="emptyProfiles">Finish a match to start unlocking badges.</span></div></div>
+<div id="statsPanel" style="margin-top:12px;background:#14251b;border:2px solid #8b6b2e;border-radius:10px;padding:10px">
+  <div style="font-weight:900;font-size:18px;margin-bottom:8px">📊 MATCH STATISTICS</div>
+  <div id="stats"></div>
+</div>
+<div class="note">Choose Single, Double or Treble, then enter the number • Double or bullseye required to finish</div>
+</div>
+<div id="maxFlash" class="maxFlash"><div class="maxCard"><div class="max180">180!</div><div id="maxWho" class="maxWho"></div><div class="maxSub">MAXIMUM!</div></div></div>
+<div id="matchReport" class="matchReport"><div class="reportCard"><div class="reportTitle">🏆 MATCH REPORT</div><div id="reportWinner" class="reportWinner"></div><div id="reportGrid" class="reportGrid"></div><button id="reportClose" class="reportClose">CLOSE MATCH REPORT</button></div></div>
+<div id="legFlash" class="legFlash"><div class="legCard"><div class="small">GAME SHOT</div><div id="flashWinner" class="winner"></div><div id="flashText" class="won">WINS THE LEG</div></div></div>
+
+<script>
+(function(){
+"use strict";
+function openHome(){document.getElementById("homeScreen").classList.remove("hidden")}
+function closeHome(){document.getElementById("homeScreen").classList.add("hidden")}
+function goToSection(id){closeHome();setTimeout(function(){var e=document.getElementById(id);if(e)e.scrollIntoView({behavior:"smooth",block:"start"})},80)}
+function showWalkOn(round,a,b){var w=document.getElementById("walkOn");document.getElementById("walkRound").textContent=(round||"MATCH").toUpperCase();document.getElementById("walkNames").innerHTML=esc(a)+' <span style="color:#d5b45c;font-size:.55em">VS</span> '+esc(b);w.classList.add("show");setTimeout(function(){w.classList.remove("show")},2200)}
+
+var players=[],current=0,started=false,finished=false,matchFinished=false,turn=[],turnTotal=0,turnStart=501,selectedBestOf=3;
+var legNumber=1,legsToWin=2,startingPlayer=0,totalDarts=0,turnCheckoutAttempted=false;
+var tournament=null,tournamentMatchIndex=-1;
+var board=document.getElementById("board");
+var nums=[20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+var cx=250,cy=250,R=205;
+
+function E(tag,a){
+ var x=document.createElementNS("http://www.w3.org/2000/svg",tag);
+ for(var k in a)x.setAttribute(k,a[k]);
+ return x;
+}
+function point(r,a){return [cx+r*Math.cos(a),cy+r*Math.sin(a)]}
+function sectorPath(r1,r2,a0,a1){
+ var p1=point(r1,a0),p2=point(r1,a1),p3=point(r2,a1),p4=point(r2,a0);
+ return "M"+p1[0]+" "+p1[1]+"A"+r1+" "+r1+" 0 0 1 "+p2[0]+" "+p2[1]+"L"+p3[0]+" "+p3[1]+"A"+r2+" "+r2+" 0 0 0 "+p4[0]+" "+p4[1]+"Z";
+}
+function addSector(r1,r2,a0,a1,type,n){
+ var path=E("path",{d:sectorPath(r1,r2,a0,a1),fill:(type==="T"||type==="D") ? ((nums.indexOf(n)%2===0)?"#c51f2d":"#197a3d") : ((nums.indexOf(n)%2===0)?"#171717":"#efe6d1"),stroke:"#333","stroke-width":1});
+ path.style.cursor="pointer";
+ path.addEventListener("pointerdown",function(e){e.preventDefault();score(type,n)});
+ board.appendChild(path);
+}
+function line(r){var p=point(r,-Math.PI/2);return E("circle",{cx:cx,cy:cy,r:r,fill:"none",stroke:"#777","stroke-width":1})}
+
+function makeBoard(){
+ board.innerHTML="";
+ board.appendChild(E("circle",{cx:cx,cy:cy,r:R,fill:"#171717",stroke:"#c9c9c9","stroke-width":5}));
+ for(var i=0;i<20;i++){
+   var center=-Math.PI/2+i*Math.PI/10;
+   var a0=center-Math.PI/20+0.006,a1=center+Math.PI/20-0.006;
+   addSector(34,100,a0,a1,"S",nums[i]);
+   addSector(119,177,a0,a1,"S",nums[i]);
+   addSector(100,119,a0,a1,"T",nums[i]);
+   addSector(177,196,a0,a1,"D",nums[i]);
+ }
+ // wire rings
+ [34,100,119,177,196].forEach(function(r){board.appendChild(line(r))});
+ // bulls
+ var bull=E("circle",{cx:cx,cy:cy,r:34,fill:"#197a3d",stroke:"#333","stroke-width":2});
+ bull.addEventListener("pointerdown",function(e){e.preventDefault();score("BULL",25)});board.appendChild(bull);
+ var eye=E("circle",{cx:cx,cy:cy,r:14,fill:"#c51f2d",stroke:"#222","stroke-width":2});
+ eye.addEventListener("pointerdown",function(e){e.preventDefault();score("BULLSEYE",50)});board.appendChild(eye);
+ // numbers OUTSIDE the double ring
+ for(var i=0;i<20;i++){
+   var a=-Math.PI/2+i*Math.PI/10;
+   var p=point(222,a);
+   var t=E("text",{x:p[0],y:p[1],"text-anchor":"middle","dominant-baseline":"middle",fill:"#fff","font-size":20,"font-weight":"bold","pointer-events":"none"});
+   t.textContent=nums[i];board.appendChild(t);
+ }
+ board.appendChild(E("circle",{cx:cx,cy:cy,r:R,fill:"none",stroke:"#eee","stroke-width":5,"pointer-events":"none"}));
+}
+makeBoard();
+// v16 fast keypad: scoring UI is independent of the SVG dartboard.
+var entryType="S", keyDigits="";
+function setEntryType(t){entryType=t;keyDigits="";document.querySelectorAll(".mult").forEach(function(b){b.classList.toggle("active",b.dataset.type===t)});var d=document.getElementById("entryDisplay");if(d)d.textContent=t+" — choose a number";}
+function enterNumber(n){if(!started||finished||matchFinished)return;score(entryType,n);keyDigits="";setEntryType("S");}
+(function buildFastPad(){
+ var pad=document.getElementById("numberPad");
+ for(var n=1;n<=20;n++){var b=document.createElement("button");b.type="button";b.textContent=n;(function(x){b.addEventListener("click",function(){enterNumber(x)})})(n);pad.appendChild(b);}
+ document.querySelectorAll(".mult").forEach(function(b){b.addEventListener("click",function(){setEntryType(b.dataset.type)})});
+ document.getElementById("missBtn").addEventListener("click",function(){if(started&&!finished){score("S",0);setEntryType("S")}});
+ document.getElementById("bullBtn").addEventListener("click",function(){if(started&&!finished){score("BULL",25);setEntryType("S")}});
+ document.getElementById("bullseyeBtn").addEventListener("click",function(){if(started&&!finished){score("BULLSEYE",50);setEntryType("S")}});
+ document.addEventListener("keydown",function(e){
+   if(document.activeElement&&document.activeElement.id==="playerName")return;
+   var k=e.key.toUpperCase(); if(k==="S"||k==="D"||k==="T"){setEntryType(k);e.preventDefault();return;}
+   if(/^[0-9]$/.test(k)){keyDigits=(keyDigits+k).slice(-2);var d=document.getElementById("entryDisplay");if(d)d.textContent=entryType+keyDigits+" — Enter";e.preventDefault();return;}
+   if(k==="ENTER"&&keyDigits){var n=parseInt(keyDigits,10);if(n>=1&&n<=20)enterNumber(n);keyDigits="";e.preventDefault();}
+ });
+})();
+
+
+var callerEnabled=false,callerQueue=[],callerSpeaking=false;
+function setCallerStatus(t){var e=document.getElementById("callerStatus");if(e)e.textContent=t;}
+function chooseBritishVoice(){
+ var vs=window.speechSynthesis?window.speechSynthesis.getVoices():[];
+ var prefs=[/george/i,/daniel/i,/ryan/i,/male/i,/english.*uk/i,/british/i];
+ for(var r of prefs){var v=vs.find(function(x){return /^en-GB/i.test(x.lang||"")&&r.test(x.name||"")});if(v)return v;}
+ return vs.find(function(x){return /^en-GB/i.test(x.lang||"")})||vs.find(function(x){return /^en/i.test(x.lang||"")})||null;
+}
+function enableCaller(){
+ if(!('speechSynthesis' in window)){setCallerStatus('Fast caller is not supported by this browser.');return;}
+ callerEnabled=true;
+ var v=chooseBritishVoice();
+ setCallerStatus('Caller ready: '+(v?v.name:'British browser voice')+' • v25 • no model download');
+ var b=document.getElementById('callerMode');if(b)b.textContent='🎙 Caller: READY';
+}
+function speak(text,shout){
+ if(!callerEnabled)enableCaller();
+ if(!callerEnabled)return;
+ callerQueue.push({text:String(text).replace(/^Total (\d+)\.$/,'$1'),shout:!!shout});
+ pumpCaller();
+}
+function pumpCaller(){
+ if(callerSpeaking||!callerQueue.length||!callerEnabled)return;
+ callerSpeaking=true;var j=callerQueue.shift();
+ var u=new SpeechSynthesisUtterance(j.text);var v=chooseBritishVoice();if(v)u.voice=v;
+ u.lang='en-GB';u.rate=j.shout?0.9:1.02;u.pitch=j.shout?0.85:0.88;u.volume=1;
+ var done=function(){callerSpeaking=false;if(j.after)j.after();pumpCaller();};u.onend=done;u.onerror=done;
+ window.speechSynthesis.speak(u);
+}
+function speakSequence(lines,pause){lines.forEach(function(line){speak(line,false);});}
+function playApplause(){
+ try{
+  var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  var ctx=new AC();var dur=2.2,rate=ctx.sampleRate,len=Math.floor(rate*dur);
+  var buf=ctx.createBuffer(1,len,rate),data=buf.getChannelData(0);
+  for(var i=0;i<len;i++){var t=i/rate;var env=Math.min(1,t*8)*Math.max(0,1-t/dur);data[i]=(Math.random()*2-1)*env*0.18;}
+  var src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
+  filter.type='bandpass';filter.frequency.value=1400;filter.Q.value=0.55;gain.gain.value=0.65;
+  src.buffer=buf;src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);src.start();
+  setTimeout(function(){try{ctx.close();}catch(e){}},2600);
+ }catch(e){}
+}
+
+function announceLegStart(name){
+ if(!callerEnabled)enableCaller();
+ if(!callerEnabled)return;
+ callerQueue.push({text:name+' to throw first.',shout:false});
+ pumpCaller();
+}
+var cb=document.getElementById('callerMode');if(cb)cb.onclick=enableCaller;
+if(window.speechSynthesis){window.speechSynthesis.onvoiceschanged=function(){if(callerEnabled){var v=chooseBritishVoice();setCallerStatus('Caller ready: '+(v?v.name:'British browser voice')+' • v25 • no model download');}};}
+function showLegFlash(name,isMatch){
+ var f=document.getElementById("legFlash");
+ document.getElementById("flashWinner").textContent=name.toUpperCase();
+ document.getElementById("flashText").textContent=isMatch?"WINS THE MATCH":"WINS LEG "+legNumber;
+ f.classList.add("show");setTimeout(function(){f.classList.remove("show")},isMatch?2400:1500);
+}
+var PROFILE_KEY="pubDartsProfilesV27";
+var ACH_KEY="pubDartsAchievementsV28";
+
+function showMaximum(name){var f=document.getElementById("maxFlash");document.getElementById("maxWho").textContent=name.toUpperCase();f.classList.add("show");setTimeout(function(){f.classList.remove("show")},1500);}
+function unlockAchievements(){
+ var a={};try{a=JSON.parse(localStorage.getItem(ACH_KEY)||"{}")||{}}catch(e){}
+ players.forEach(function(p){if((p.maxes||0)>0)a.first180=true;if((p.highestCheckout||0)>=100)a.bigCheckout=true;if((p.oneForties||0)>0)a.first140=true;if((p.tons||0)>0)a.firstTon=true;});
+ var db=loadProfiles();Object.keys(db).forEach(function(k){if((db[k].wins||0)>=10)a.tenWins=true;});
+ try{localStorage.setItem(ACH_KEY,JSON.stringify(a))}catch(e){} renderAchievements();
+}
+function renderAchievements(){var a={};try{a=JSON.parse(localStorage.getItem(ACH_KEY)||"{}")||{}}catch(e){};var b=[];if(a.firstTon)b.push("💯 TON UP");if(a.first140)b.push("🔥 FIRST 140+");if(a.first180)b.push("🎯 FIRST 180");if(a.bigCheckout)b.push("🚀 100+ CHECKOUT");if(a.tenWins)b.push("🏆 10 MATCH WINS");document.getElementById("achievementBadges").innerHTML=b.length?b.map(function(x){return '<span class="badge">'+x+'</span>'}).join(""):'<span class="emptyProfiles">Finish a match to start unlocking badges.</span>'; }
+function showMatchReport(){var w=players[current];document.getElementById("reportWinner").textContent=w.name+" wins the match • "+w.legs+" leg"+(w.legs===1?"":"s");document.getElementById("reportGrid").innerHTML=players.map(function(p){var avg=p.darts?((p.points/p.darts)*3).toFixed(1):"0.0";var co=p.checkoutAttempts?Math.round((p.checkouts/p.checkoutAttempts)*100)+"%":"—";return '<div class="reportPlayer"><b>'+esc(p.name)+'</b><div class="career">3-dart average '+avg+'<br>Legs won '+(p.legs||0)+' • 100+ '+(p.tons||0)+' • 140+ '+(p.oneForties||0)+'<br>180s '+(p.maxes||0)+' • High checkout '+(p.highestCheckout||0)+'<br>Checkout '+co+' ('+(p.checkouts||0)+'/'+(p.checkoutAttempts||0)+')</div></div>'}).join("");document.getElementById("matchReport").classList.add("show");}
+document.getElementById("reportClose").onclick=function(){document.getElementById("matchReport").classList.remove("show")};
+function loadProfiles(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||"{}")||{}}catch(e){return {}}}
+function saveProfiles(x){try{localStorage.setItem(PROFILE_KEY,JSON.stringify(x))}catch(e){}}
+function updateCareerProfiles(){
+ var db=loadProfiles();
+ players.forEach(function(p){
+  var key=p.name.trim().toLowerCase(),c=db[key]||{name:p.name,matches:0,wins:0,legs:0,darts:0,points:0,maxes:0,highestCheckout:0};
+  c.name=p.name;c.matches=(c.matches||0)+1;c.legs=(c.legs||0)+(p.legs||0);c.darts=(c.darts||0)+(p.darts||0);c.points=(c.points||0)+(p.points||0);c.maxes=(c.maxes||0)+(p.maxes||0);c.highestCheckout=Math.max(c.highestCheckout||0,p.highestCheckout||0);if(p===players[current])c.wins=(c.wins||0)+1;db[key]=c;
+ });saveProfiles(db);renderProfiles();
+}
+function resetCareerStats(){
+ if(started&&!matchFinished){alert("Finish the current match before resetting stats.");return}
+ if(!confirm("Reset all player career stats and achievements on this device? This cannot be undone."))return;
+ try{localStorage.removeItem(PROFILE_KEY);localStorage.removeItem(ACH_KEY)}catch(e){}
+ renderProfiles();renderAchievements();
+}
+document.getElementById("resetStats").onclick=resetCareerStats;
+function renderProfiles(){
+ var box=document.getElementById("profiles"),db=loadProfiles(),arr=Object.keys(db).map(function(k){return db[k]});
+ if(!arr.length){box.innerHTML='<div class="emptyProfiles">Career records will appear here after you finish your first match.</div>';return}
+ arr.sort(function(a,b){return (b.matches||0)-(a.matches||0)});
+ box.innerHTML=arr.map(function(c){var avg=c.darts?((c.points/c.darts)*3).toFixed(1):"0.0";return '<div class="profileCard"><b>'+esc(c.name)+'</b><div class="career">Matches '+(c.matches||0)+' • Wins '+(c.wins||0)+'<br>Legs won '+(c.legs||0)+' • Career avg '+avg+'<br>180s '+(c.maxes||0)+' • High checkout '+(c.highestCheckout||0)+'</div><button class="loadProfile" data-name="'+escAttr(c.name)+'">+ Add to match</button></div>'}).join("");
+ Array.from(box.querySelectorAll(".loadProfile")).forEach(function(b){b.onclick=function(){addProfilePlayer(b.dataset.name)}});
+}
+function escAttr(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function addProfilePlayer(name){if(started){alert("Start a new game before adding players.");return}if(players.length>=8){alert("Maximum 8 players.");return}if(players.some(function(p){return p.name.toLowerCase()===name.toLowerCase()})){return}players.push(newPlayer(name));render()}
+function newPlayer(n){return {name:n,score:501,legs:0,darts:0,points:0,best:0,visits:0,tons:0,oneForties:0,maxes:0,checkoutAttempts:0,checkouts:0,highestCheckout:0}}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function createTournament(){
+ if(started&&!matchFinished){alert("Finish the current match first.");return}
+ var size=parseInt(document.getElementById("tourSize").value,10);
+ if(players.length!==size){alert("Tournament needs exactly "+size+" players added above.");return}
+ var names=shuffle(players.map(function(p){return p.name}));
+ tournament={size:size,round:0,matches:[],champion:null};
+ for(var i=0;i<names.length;i+=2)tournament.matches.push({round:0,a:names[i],b:names[i+1],winner:null});
+ tournamentMatchIndex=-1;saveTournament();renderBracket();startNextTournamentMatch();
+}
+function saveTournament(){try{localStorage.setItem("pubDartsTournamentV30",JSON.stringify(tournament))}catch(e){}}
+function loadTournament(){try{var t=JSON.parse(localStorage.getItem("pubDartsTournamentV30")||"null");if(t){tournament=t;renderBracket()}}catch(e){}}
+function resetTournament(){if(started&&!matchFinished){alert("Finish the current match first.");return}tournament=null;tournamentMatchIndex=-1;try{localStorage.removeItem("pubDartsTournamentV30")}catch(e){};renderBracket()}
+function currentRoundMatches(r){return tournament?tournament.matches.filter(function(m){return m.round===r}):[]}
+function tournamentRoundName(){
+ if(!tournament)return "";
+ var rounds=tournament.size===4?2:3;
+ if(tournament.round===rounds-1)return "Final";
+ if(tournament.round===rounds-2)return "Semi final";
+ return "Quarter final";
+}
+function announceTournamentMatch(m){
+ var round=tournamentRoundName();
+ showWalkOn(round,m.a,m.b);
+ setTimeout(function(){speak(round+". "+m.a+" versus "+m.b+".");},500);
+}
+function startNextTournamentMatch(){
+ if(!tournament||tournament.champion)return;
+ var pending=-1;for(var i=0;i<tournament.matches.length;i++){if(tournament.matches[i].round===tournament.round&&!tournament.matches[i].winner){pending=i;break}}
+ if(pending<0){
+   var prev=currentRoundMatches(tournament.round),w=prev.map(function(m){return m.winner});
+   if(w.length===1){tournament.champion=w[0];saveTournament();renderBracket();showLegFlash(w[0],true);playApplause();speak("Tournament champion, "+w[0]+"!");return}
+   tournament.round++;for(var j=0;j<w.length;j+=2)tournament.matches.push({round:tournament.round,a:w[j],b:w[j+1],winner:null});saveTournament();renderBracket();return startNextTournamentMatch();
+ }
+ tournamentMatchIndex=pending;var m=tournament.matches[pending];players=[newPlayer(m.a),newPlayer(m.b)];started=false;finished=false;matchFinished=false;current=0;legNumber=1;startingPlayer=0;turn=[];turnTotal=0;turnStart=501;render();
+ document.getElementById("tourStatus").textContent="Next match: "+m.a+" vs "+m.b+" — choose Best Of and press START MATCH.";
+ enableCaller();announceTournamentMatch(m);
+}
+function tournamentMatchWon(name){if(!tournament||tournamentMatchIndex<0)return;tournament.matches[tournamentMatchIndex].winner=name;saveTournament();renderBracket();setTimeout(startNextTournamentMatch,3200)}
+function renderBracket(){
+ var box=document.getElementById("bracket"),st=document.getElementById("tourStatus");if(!box)return;
+ if(!tournament){box.innerHTML="";st.textContent="Add 4 or 8 players above, then create a knockout tournament.";return}
+ var rounds=tournament.size===4?2:3,html="";for(var r=0;r<rounds;r++){var ms=currentRoundMatches(r);html+='<div class="round"><h3>'+(r===rounds-1?'FINAL':r===rounds-2?'SEMI-FINALS':'QUARTER-FINALS')+'</h3>';if(!ms.length)html+='<div class="tie">Awaiting winners</div>';ms.forEach(function(m){html+='<div class="tie"><div'+(m.winner===m.a?' class="winner"':'')+'>'+esc(m.a)+'</div><div'+(m.winner===m.b?' class="winner"':'')+'>'+esc(m.b)+'</div></div>'});html+='</div>'}box.innerHTML=html;if(tournament.champion)st.textContent="🏆 Champion: "+tournament.champion;
+}
+document.getElementById("tourCreate").onclick=createTournament;document.getElementById("tourReset").onclick=resetTournament;
+function render(){
+ document.getElementById("matchInfo").textContent=selectedBestOf===1?"1 LEG":"BEST OF "+selectedBestOf;
+ document.getElementById("legInfo").textContent="LEG "+legNumber+" • FIRST TO "+legsToWin;
+ var box=document.getElementById("players");box.innerHTML="";
+ players.forEach(function(p,i){
+   var d=document.createElement("div");
+   d.className="player"+(started&&!finished&&i===current?" active":"");
+   var avg=p.darts?((p.points/p.darts)*3).toFixed(1):"0.0";
+   var route=(started&&!finished&&p.score>=2&&p.score<=170)?findCheckout(p.score):null;
+   var req=route?'<div style="margin-top:7px;font-size:14px;font-weight:800;color:#ffe7a3;letter-spacing:.4px">CHECKOUT: '+route.map(shortCheckoutLabel).join(' → ')+'</div>':'';
+   d.innerHTML='<button class="remove" data-i="'+i+'">✕</button><div class="name">'+esc(p.name)+'</div><div class="score">'+p.score+'</div>'+req+'<div style="font-size:13px;color:#d9c58f;margin-top:5px">Legs '+(p.legs||0)+' • 3-dart avg '+avg+' • Best '+(p.best||0)+'</div>';
+   box.appendChild(d);
+ });
+ Array.from(document.querySelectorAll(".remove")).forEach(function(b){b.onclick=function(){removePlayer(+b.dataset.i)}});
+ Array.from(document.querySelectorAll(".legBtn")).forEach(function(b){b.disabled=started&&!matchFinished;});
+ var status=document.getElementById("status");
+ if(!players.length)status.textContent="Add a player, then press START GAME";
+ else if(!started)status.textContent="Players ready — press START GAME";
+ else if(matchFinished)status.textContent=players[current].name+" wins the match!";
+ else if(finished)status.textContent=players[current].name+" wins leg "+legNumber+"!";
+ else status.textContent="Leg "+legNumber+" • "+players[current].name+" — dart "+(turn.length+1)+" of 3";
+ document.getElementById("checkout").textContent=started&&!finished?checkout(players[current].score):"";
+ document.getElementById("history").textContent=turn.length?"This turn: "+turn.map(function(x){return x.label}).join(" • ")+"  |  Total: "+turnTotal:"";
+ var stats=document.getElementById("stats");
+ stats.innerHTML=players.map(function(p){
+   var avg=p.darts?((p.points/p.darts)*3).toFixed(1):"0.0";
+   var co=p.checkoutAttempts?((p.checkouts/p.checkoutAttempts)*100).toFixed(0)+"%":"—";
+   return '<div style="padding:8px 0;border-top:1px solid #405443"><b>'+esc(p.name)+'</b>'+
+   '<div style="font-size:13px;line-height:1.65;color:#eee">Avg: '+avg+
+   ' &nbsp;|&nbsp; 100+: '+(p.tons||0)+
+   ' &nbsp;|&nbsp; 140+: '+(p.oneForties||0)+
+   ' &nbsp;|&nbsp; 180s: '+(p.maxes||0)+
+   '<br>Checkout: '+co+' ('+(p.checkouts||0)+'/'+(p.checkoutAttempts||0)+')'+
+   ' &nbsp;|&nbsp; Highest checkout: '+(p.highestCheckout||0)+'</div></div>';
+ }).join("");
+}
+function esc(s){return s.replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+
+Array.from(document.querySelectorAll(".legBtn")).forEach(function(b){b.addEventListener("click",function(){
+ if(started&&!matchFinished)return; selectedBestOf=parseInt(b.dataset.legs,10)||3;
+ Array.from(document.querySelectorAll(".legBtn")).forEach(function(x){x.classList.toggle("active",x===b);});
+});});
+
+document.getElementById("addBtn").onclick=function(){
+ var input=document.getElementById("playerName"),n=input.value.trim();
+ if(!n){alert("Enter a player name first.");input.focus();return}
+ if(started){alert("Start a new game before adding players.");return}
+ if(players.length>=8){alert("Maximum 8 players.");return}
+ players.push(newPlayer(n));input.value="";render();
+};
+document.getElementById("playerName").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("addBtn").click()});
+
+document.getElementById("start").onclick=function(){
+ enableCaller();
+ if(!players.length){alert("Please add at least one player first.");return}
+ var best=selectedBestOf;
+ legsToWin=Math.floor(best/2)+1;legNumber=1;startingPlayer=0;current=0;matchFinished=false;
+ players.forEach(function(p){p.score=501;p.legs=0;p.darts=0;p.points=0;p.best=0;p.visits=0;p.tons=0;p.oneForties=0;p.maxes=0;p.checkoutAttempts=0;p.checkouts=0;p.highestCheckout=0});
+ started=true;finished=false;turn=[];turnTotal=0;turnStart=501;turnCheckoutAttempted=false;
+ if(tournament&&tournamentMatchIndex>=0){var tm=tournament.matches[tournamentMatchIndex];if(tm&&!tm.winner)announceTournamentMatch(tm);}
+ announceLegStart(players[0].name);
+ render();
+};
+document.getElementById("new").onclick=function(){
+ if(!players.length){alert("Add a player first.");return}
+ started=false;finished=false;matchFinished=false;current=0;legNumber=1;startingPlayer=0;turn=[];turnTotal=0;turnStart=501;turnCheckoutAttempted=false;
+ players.forEach(function(p){p.score=501;p.legs=0;p.darts=0;p.points=0;p.best=0;p.visits=0;p.tons=0;p.oneForties=0;p.maxes=0;p.checkoutAttempts=0;p.checkouts=0;p.highestCheckout=0});
+ render();
+};
+document.getElementById("undo").onclick=function(){
+ if(!started||!turn.length)return;
+ var x=turn.pop();players[current].score=x.before;turnTotal-=x.value;render();
+};
+document.getElementById("end").onclick=function(){if(started&&!finished)nextPlayer()};
+function removePlayer(i){
+ if(started){alert("Start a new game before removing players.");return}
+ if(players.length<=1){alert("You need at least one player.");return}
+ players.splice(i,1);if(current>=players.length)current=0;render();
+}
+
+function score(type,n){
+ if(!started||finished||matchFinished||turn.length>=3)return;
+ var value=type==="BULL"||type==="BULLSEYE"?n:n*(type==="T"?3:type==="D"?2:1);
+ var finish=type==="D"||type==="BULLSEYE";
+ var before=players[current].score,after=before-value;
+ if(!turnCheckoutAttempted && before>=2 && before<=170 && findCheckout(before)){
+   players[current].checkoutAttempts=(players[current].checkoutAttempts||0)+1;
+   turnCheckoutAttempted=true;
+ }
+ var label=n===0?"Miss":type==="BULLSEYE"?"Bullseye":type==="BULL"?"Bull":type==="T"?"Treble "+n:type==="D"?"Double "+n:"Single "+n;
+ turn.push({label:label,value:value,finish:finish,before:before});
+ turnTotal+=value;
+ if(after<0||after===1||(after===0&&!finish)){
+   players[current].score=turnStart;
+   players[current].darts=(players[current].darts||0)+turn.length;
+   totalDarts+=turn.length;
+   speak("Bust. Score stays at "+turnStart+".");
+   turn=[];turnTotal=0;turnCheckoutAttempted=false;render();return;
+ }
+ players[current].score=after;
+ players[current].darts=(players[current].darts||0)+1;
+ players[current].points=(players[current].points||0)+value;
+ totalDarts++;
+ // Individual darts are silent; announce the total after the turn.
+ if(after===0){
+   finished=true;
+   players[current].legs=(players[current].legs||0)+1;
+   players[current].checkouts=(players[current].checkouts||0)+1;
+   var checkoutValue=turnStart;
+   if(checkoutValue>(players[current].highestCheckout||0))players[current].highestCheckout=checkoutValue;
+   players[current].visits=(players[current].visits||0)+1;
+   if(turnTotal>(players[current].best||0))players[current].best=turnTotal;
+   if(turnTotal===180)players[current].maxes=(players[current].maxes||0)+1;
+   else if(turnTotal>=140)players[current].oneForties=(players[current].oneForties||0)+1;
+   else if(turnTotal>=100)players[current].tons=(players[current].tons||0)+1;
+   if(players[current].legs>=legsToWin){
+     matchFinished=true;
+     updateCareerProfiles();
+     unlockAchievements();
+     showLegFlash(players[current].name,true);
+     playApplause();
+     var matchWinnerName=players[current].name;setTimeout(function(){speakSequence(["Game shot, and the match!","Winner, "+matchWinnerName+"!"],450);},500);setTimeout(showMatchReport,2600);if(tournament&&tournamentMatchIndex>=0)tournamentMatchWon(matchWinnerName);
+   }else{
+     var winner=current;
+     showLegFlash(players[winner].name,false);
+     playApplause();
+     setTimeout(function(){
+       speak("Game shot, "+players[winner].name+".");
+       setTimeout(startNextLeg,1500);
+     },450);
+   }
+   render();return;
+ }
+ if(turn.length===3){
+   players[current].visits=(players[current].visits||0)+1;
+   if(turnTotal>(players[current].best||0))players[current].best=turnTotal;
+   if(turnTotal===180)players[current].maxes=(players[current].maxes||0)+1;
+   else if(turnTotal>=140)players[current].oneForties=(players[current].oneForties||0)+1;
+   else if(turnTotal>=100)players[current].tons=(players[current].tons||0)+1;
+   var total=turnTotal,remain=after;
+   // v15: switch player immediately; caller runs independently.
+   nextPlayer();
+   if(total===180){
+     showMaximum(players[(current-1+players.length)%players.length].name);
+     speak("ONE HUNDRED AND EIGHTY!",true);
+   }else{
+     // Keep the spoken phrase short so the caller stays responsive on phones.
+     speak("Total "+total+".");
+   }
+   // If the next player starts the visit on a standard checkout, announce what they require.
+   var required=players[current].score;
+   if(required>=2&&required<=170&&findCheckout(required)){
+     speak(players[current].name+", you require "+required+".");
+   }
+ }else{
+   render();
+   if(after>=2&&after<=170)document.getElementById("checkout").textContent=checkout(after);
+ }
+}
+function startNextLeg(){
+ legNumber++;finished=false;turn=[];turnTotal=0;turnCheckoutAttempted=false;
+ startingPlayer=(startingPlayer+1)%players.length;
+ current=startingPlayer;
+ players.forEach(function(p){p.score=501});
+ turnStart=501;
+ speak("Leg "+legNumber+".");announceLegStart(players[current].name);
+ render();
+}
+function nextPlayer(){
+ turn=[];turnTotal=0;turnCheckoutAttempted=false;current=(current+1)%players.length;turnStart=players[current].score;render();
+}
+function checkoutSpeech(s){
+ var r=findCheckout(s);
+ return r?"Finish "+s+". "+r.join(", then ")+".":"No standard three dart checkout.";
+}
+function shortCheckoutLabel(x){
+ var m=/^(single|double|treble) (\d+)$/i.exec(x);
+ if(m)return ({single:"S",double:"D",treble:"T"})[m[1].toLowerCase()]+m[2];
+ if(/^bullseye$/i.test(x))return "BULL";
+ if(/^bull$/i.test(x))return "25";
+ return x;
+}
+function checkout(s){
+ if(s<2||s>170)return "Checkout: —";
+ var r=findCheckout(s);
+ return r?"Checkout "+s+": "+r.join(" → "):"Checkout: —";
+}
+var checkoutMemo={};
+function findCheckout(s){
+ if(Object.prototype.hasOwnProperty.call(checkoutMemo,s))return checkoutMemo[s];
+ var vals=[];
+ for(var n=1;n<=20;n++){vals.push({v:n,l:"single "+n,f:false,rank:3});vals.push({v:n*2,l:"double "+n,f:true,rank:1});vals.push({v:n*3,l:"treble "+n,f:false,rank:2})}
+ vals.push({v:25,l:"bull",f:false,rank:4},{v:50,l:"bullseye",f:true,rank:0});
+ // Prefer 1 dart, then 2 darts, then 3 darts; within routes prefer common high trebles and double finishes.
+ for(var a=0;a<vals.length;a++)if(vals[a].v===s&&vals[a].f)return checkoutMemo[s]=[vals[a].l];
+ for(var a=0;a<vals.length;a++)for(var b=0;b<vals.length;b++)if(vals[a].v+vals[b].v===s&&vals[b].f)return checkoutMemo[s]=[vals[a].l,vals[b].l];
+ var best=null,bestScore=1e9;
+ for(var a=0;a<vals.length;a++)for(var b=0;b<vals.length;b++)for(var c=0;c<vals.length;c++){
+   if(vals[a].v+vals[b].v+vals[c].v!==s||!vals[c].f)continue;
+   var score=(vals[a].rank*100+vals[b].rank*10+vals[c].rank)+(vals[a].v>60?0:5)+(vals[b].v>60?0:2);
+   if(score<bestScore){bestScore=score;best=[vals[a].l,vals[b].l,vals[c].l]}
+ }
+ return checkoutMemo[s]=best;
+}
+
+document.getElementById("homeReturn").onclick=openHome;
+document.getElementById("homeQuick").onclick=function(){closeHome();setTimeout(function(){document.getElementById("playerName").focus()},100)};
+document.getElementById("homeTournament").onclick=function(){goToSection("tournamentPanel")};
+document.getElementById("homePlayers").onclick=function(){goToSection("profilePanel")};
+document.getElementById("homeSettings").onclick=function(){document.getElementById("settingsBox").classList.add("show")};
+document.getElementById("settingsClose").onclick=function(){document.getElementById("settingsBox").classList.remove("show")};
+document.getElementById("settingsCaller").onclick=function(){enableCaller();this.textContent="🎙 Caller ready"};
+renderProfiles();
+renderAchievements();
+render();
+})();
+
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("service-worker.js").catch(function(){})})}</script></body>
+</html>
